@@ -1,10 +1,12 @@
 using System.Text;
 using AssistIQ.Api.Auth;
 using AssistIQ.Application.Abstractions;
+using AssistIQ.Application.AuditLogs;
 using AssistIQ.Application.Auth;
 using AssistIQ.Application.Drafts;
 using AssistIQ.Application.Knowledge;
 using AssistIQ.Application.Tickets;
+using AssistIQ.Application.UsageLogs;
 using AssistIQ.Infrastructure.Ai;
 using AssistIQ.Infrastructure.Auth;
 using AssistIQ.Infrastructure.Persistence;
@@ -38,10 +40,14 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IKnowledgeDocumentRepository, KnowledgeDocumentRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IDraftRepository, DraftRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IUsageLogRepository, UsageLogRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<KnowledgeDocumentService>();
 builder.Services.AddScoped<TicketService>();
 builder.Services.AddScoped<DraftService>();
+builder.Services.AddScoped<AuditLogQueryService>();
+builder.Services.AddScoped<UsageLogQueryService>();
 builder.Services.AddScoped<DemoDataSeeder>();
 builder.Services.AddHttpContextAccessor();
 
