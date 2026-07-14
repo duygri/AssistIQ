@@ -1,5 +1,7 @@
 # AssistIQ - SaaS Support Copilot API
 
+[![CI](https://github.com/duygri/AssistIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/duygri/AssistIQ/actions/workflows/ci.yml)
+
 AssistIQ is a portfolio backend for a support-team AI copilot. It is built to show more than CRUD: JWT auth, RBAC, EF Core/PostgreSQL, audit logs, usage/cost tracking, deterministic fake AI infrastructure, and a ticket-to-draft workflow with citations.
 
 ## Tech Stack
