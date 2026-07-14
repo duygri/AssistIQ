@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AssistIQ.Api/AssistIQ.Api.csproj" />
+    <Project Path="src/AssistIQ.Application/AssistIQ.Application.csproj" />
+    <Project Path="src/AssistIQ.Domain/AssistIQ.Domain.csproj" />
+    <Project Path="src/AssistIQ.Infrastructure/AssistIQ.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AssistIQ.Tests/AssistIQ.Tests.csproj" />
+  </Folder>
+</Solution>
