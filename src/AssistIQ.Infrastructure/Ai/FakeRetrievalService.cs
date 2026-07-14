@@ -14,7 +14,7 @@ public sealed class FakeRetrievalService(AssistIQDbContext dbContext) : IRetriev
         var document = await dbContext.KnowledgeDocuments
             .AsNoTracking()
             .Where(document => document.Status == KnowledgeDocumentStatus.Ready && document.ProviderFileId != null)
-            .OrderBy(document => document.UploadedAt)
+            .OrderBy(document => document.FileName)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (document is null)
