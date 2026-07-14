@@ -2,6 +2,7 @@ using System.Text;
 using AssistIQ.Api.Auth;
 using AssistIQ.Application.Abstractions;
 using AssistIQ.Application.Auth;
+using AssistIQ.Application.Knowledge;
 using AssistIQ.Infrastructure.Ai;
 using AssistIQ.Infrastructure.Auth;
 using AssistIQ.Infrastructure.Persistence;
@@ -32,7 +33,9 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IKnowledgeDocumentRepository, KnowledgeDocumentRepository>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<KnowledgeDocumentService>();
 builder.Services.AddScoped<DemoDataSeeder>();
 builder.Services.AddHttpContextAccessor();
 
