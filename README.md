@@ -12,6 +12,13 @@ AssistIQ is a portfolio backend for a support-team AI copilot. It is built to sh
 - xUnit, WebApplicationFactory, SQLite integration tests
 - OpenAPI in development
 
+## Architecture Highlights
+
+- `AssistIQ.Domain`: entity state and business rules such as draft citation gating.
+- `AssistIQ.Application`: DTOs, use-case services, stable error codes, and provider-neutral AI boundaries.
+- `AssistIQ.Infrastructure`: EF Core persistence, repositories, fake AI/retrieval/indexing adapters, JWT, audit, usage recording, and seed data.
+- `AssistIQ.Api`: controllers, JWT bearer auth, and policy-based authorization.
+
 ## V1 Scope
 
 - Admin and Support Agent login
@@ -77,6 +84,26 @@ Seeded accounts:
 5. Generate a draft through `POST /api/tickets/{id}/drafts/generate`.
 6. Send the draft through `POST /api/drafts/{id}/send`.
 7. Login as Admin and inspect `GET /api/audit-logs` and `GET /api/usage-logs`.
+
+The request collection in `src/AssistIQ.Api/AssistIQ.Api.http` follows this flow.
+
+## API Surface
+
+| Area | Endpoint | Access |
+| --- | --- | --- |
+| Auth | `POST /api/auth/login` | Public |
+| Auth | `GET /api/auth/me` | Authenticated |
+| Knowledge | `GET /api/knowledge-documents` | Admin |
+| Knowledge | `POST /api/knowledge-documents` | Admin |
+| Knowledge | `POST /api/knowledge-documents/{id}/disable` | Admin |
+| Tickets | `POST /api/tickets` | Admin, Support Agent |
+| Tickets | `GET /api/tickets` | Admin sees all, Support Agent sees own |
+| Tickets | `GET /api/tickets/{id}` | Admin or owner |
+| Drafts | `POST /api/tickets/{id}/drafts/generate` | Admin or owner |
+| Drafts | `PATCH /api/drafts/{id}` | Admin or owner |
+| Drafts | `POST /api/drafts/{id}/send` | Admin or owner |
+| Admin Logs | `GET /api/audit-logs` | Admin |
+| Admin Logs | `GET /api/usage-logs` | Admin |
 
 ## Verification
 

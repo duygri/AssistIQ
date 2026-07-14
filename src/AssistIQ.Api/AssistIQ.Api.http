@@ -1,6 +1,80 @@
 @AssistIQ.Api_HostAddress = http://localhost:5255
+@AdminToken = replace-with-admin-jwt
+@AgentToken = replace-with-agent-jwt
+@TicketId = replace-with-ticket-id
+@DraftId = replace-with-draft-id
 
-GET {{AssistIQ.Api_HostAddress}}/weatherforecast/
+GET {{AssistIQ.Api_HostAddress}}/health
 Accept: application/json
 
 ###
+
+POST {{AssistIQ.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@assistiq.local",
+  "password": "Admin123!"
+}
+
+###
+
+POST {{AssistIQ.Api_HostAddress}}/api/knowledge-documents
+Authorization: Bearer {{AdminToken}}
+Content-Type: application/json
+
+{
+  "fileName": "billing.md",
+  "contentType": "text/markdown",
+  "sizeBytes": 512,
+  "textContent": "Billing details can be updated from workspace settings."
+}
+
+###
+
+POST {{AssistIQ.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "agent@assistiq.local",
+  "password": "Agent123!"
+}
+
+###
+
+POST {{AssistIQ.Api_HostAddress}}/api/tickets
+Authorization: Bearer {{AgentToken}}
+Content-Type: application/json
+
+{
+  "customerQuestion": "How do I update billing details?",
+  "customerName": "Linh",
+  "customerEmail": "linh@example.com"
+}
+
+###
+
+POST {{AssistIQ.Api_HostAddress}}/api/tickets/{{TicketId}}/drafts/generate
+Authorization: Bearer {{AgentToken}}
+Content-Type: application/json
+
+{
+  "instructions": "Use a concise and friendly tone."
+}
+
+###
+
+POST {{AssistIQ.Api_HostAddress}}/api/drafts/{{DraftId}}/send
+Authorization: Bearer {{AgentToken}}
+
+###
+
+GET {{AssistIQ.Api_HostAddress}}/api/audit-logs
+Authorization: Bearer {{AdminToken}}
+Accept: application/json
+
+###
+
+GET {{AssistIQ.Api_HostAddress}}/api/usage-logs
+Authorization: Bearer {{AdminToken}}
+Accept: application/json
