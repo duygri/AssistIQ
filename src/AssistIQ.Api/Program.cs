@@ -90,11 +90,22 @@ app.MapGet("/health", () => Results.Ok(new
     status = "ok"
 }));
 
-if (app.Configuration.GetValue<bool>("SeedDemoDataOnStartup"))
+if (app.Configuration.GetValue<bool>("ApplyMigrationsOnStartup") ||
+    app.Configuration.GetValue<bool>("SeedDemoDataOnStartup"))
 {
     using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
-    await seeder.SeedAsync();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AssistIQDbContext>();
+
+    if (app.Configuration.GetValue<bool>("ApplyMigrationsOnStartup"))
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+
+    if (app.Configuration.GetValue<bool>("SeedDemoDataOnStartup"))
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
+        await seeder.SeedAsync();
+    }
 }
 
 app.Run();

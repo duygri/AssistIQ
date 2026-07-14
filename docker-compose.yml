@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5255:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=assistiq;Username=postgres;Password=postgres
+      Jwt__Issuer: AssistIQ
+      Jwt__Audience: AssistIQ
+      Jwt__SigningKey: dev-only-signing-key-change-before-production-32chars
+      UsageCost__DefaultInputCostPer1M: "1.25"
+      UsageCost__DefaultOutputCostPer1M: "10.0"
+      ApplyMigrationsOnStartup: "true"
+      SeedDemoDataOnStartup: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: assistiq
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - assistiq-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d assistiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  assistiq-postgres:

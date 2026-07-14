@@ -36,3 +36,6 @@ jobs:
 
       - name: Vulnerability scan
         run: dotnet list AssistIQ.slnx package --vulnerable --include-transitive
+
+      - name: Docker build
+        run: docker build --tag assistiq-api:ci .

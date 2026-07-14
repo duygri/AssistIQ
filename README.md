@@ -62,6 +62,39 @@ OpenAPI is available in Development at:
 /openapi/v1.json
 ```
 
+## Docker Demo Setup
+
+For a one-command demo with PostgreSQL, migrations, and demo users:
+
+```powershell
+docker compose up --build
+```
+
+Then open:
+
+```text
+http://localhost:5255/health
+http://localhost:5255/openapi/v1.json
+```
+
+The Docker profile sets:
+
+- `ApplyMigrationsOnStartup=true`
+- `SeedDemoDataOnStartup=true`
+- PostgreSQL at `localhost:5432`
+
+Stop the stack:
+
+```powershell
+docker compose down
+```
+
+Remove the database volume:
+
+```powershell
+docker compose down -v
+```
+
 ## Demo Users
 
 Demo data seeding is implemented but disabled by default to avoid startup failures when PostgreSQL is not running. Enable it with:
