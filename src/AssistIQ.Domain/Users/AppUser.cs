@@ -6,6 +6,7 @@ public sealed class AppUser
     {
         Email = string.Empty;
         DisplayName = string.Empty;
+        PasswordHash = string.Empty;
     }
 
     private AppUser(Guid id, string email, string displayName, UserRole role, DateTimeOffset createdAt)
@@ -27,6 +28,8 @@ public sealed class AppUser
     public UserRole Role { get; private set; }
 
     public bool IsActive { get; private set; }
+
+    public string PasswordHash { get; private set; } = string.Empty;
 
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -51,5 +54,15 @@ public sealed class AppUser
     {
         IsActive = false;
         DisabledAt = disabledAt;
+    }
+
+    public void SetPasswordHash(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new InvalidOperationException("Password hash is required.");
+        }
+
+        PasswordHash = passwordHash;
     }
 }
