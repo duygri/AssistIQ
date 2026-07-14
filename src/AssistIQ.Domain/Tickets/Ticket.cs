@@ -4,23 +4,22 @@ public sealed class Ticket
 {
     private Ticket()
     {
+        CustomerQuestion = string.Empty;
         CustomerEmail = string.Empty;
-        Subject = string.Empty;
-        Question = string.Empty;
     }
 
     private Ticket(
         Guid id,
-        string customerEmail,
-        string subject,
-        string question,
+        string customerQuestion,
+        string? customerName,
+        string? customerEmail,
         Guid createdByUserId,
         DateTimeOffset createdAt)
     {
         Id = id;
+        CustomerQuestion = customerQuestion;
+        CustomerName = customerName;
         CustomerEmail = customerEmail;
-        Subject = subject;
-        Question = question;
         CreatedByUserId = createdByUserId;
         CreatedAt = createdAt;
         Status = TicketStatus.Open;
@@ -28,11 +27,11 @@ public sealed class Ticket
 
     public Guid Id { get; private set; }
 
-    public string CustomerEmail { get; private set; }
+    public string CustomerQuestion { get; private set; }
 
-    public string Subject { get; private set; }
+    public string? CustomerName { get; private set; }
 
-    public string Question { get; private set; }
+    public string? CustomerEmail { get; private set; }
 
     public Guid CreatedByUserId { get; private set; }
 
@@ -45,32 +44,22 @@ public sealed class Ticket
     public DateTimeOffset? SentAt { get; private set; }
 
     public static Ticket Create(
-        string customerEmail,
-        string subject,
-        string question,
+        string customerQuestion,
+        string? customerName,
+        string? customerEmail,
         Guid createdByUserId,
         DateTimeOffset createdAt)
     {
-        if (string.IsNullOrWhiteSpace(customerEmail))
-        {
-            throw new InvalidOperationException("Customer email is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(subject))
-        {
-            throw new InvalidOperationException("Ticket subject is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(question))
+        if (string.IsNullOrWhiteSpace(customerQuestion))
         {
             throw new InvalidOperationException("Ticket question is required.");
         }
 
         return new Ticket(
             Guid.NewGuid(),
-            customerEmail.Trim(),
-            subject.Trim(),
-            question.Trim(),
+            customerQuestion.Trim(),
+            string.IsNullOrWhiteSpace(customerName) ? null : customerName.Trim(),
+            string.IsNullOrWhiteSpace(customerEmail) ? null : customerEmail.Trim(),
             createdByUserId,
             createdAt);
     }

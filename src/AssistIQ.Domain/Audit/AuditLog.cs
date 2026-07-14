@@ -9,7 +9,7 @@ public sealed class AuditLog
 
     private AuditLog(
         Guid id,
-        Guid actorUserId,
+        Guid? actorUserId,
         AuditAction action,
         string entityName,
         Guid entityId,
@@ -31,7 +31,7 @@ public sealed class AuditLog
 
     public Guid Id { get; private set; }
 
-    public Guid ActorUserId { get; private set; }
+    public Guid? ActorUserId { get; private set; }
 
     public AuditAction Action { get; private set; }
 
@@ -48,7 +48,7 @@ public sealed class AuditLog
     public string? MetadataJson { get; private set; }
 
     public static AuditLog Create(
-        Guid actorUserId,
+        Guid? actorUserId,
         AuditAction action,
         string entityName,
         Guid entityId,

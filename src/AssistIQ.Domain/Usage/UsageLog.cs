@@ -5,6 +5,7 @@ public sealed class UsageLog
     private UsageLog()
     {
         Provider = string.Empty;
+        Model = string.Empty;
     }
 
     private UsageLog(
@@ -13,10 +14,13 @@ public sealed class UsageLog
         Guid? ticketId,
         Guid? draftId,
         string provider,
+        string model,
+        string? responseId,
         int promptTokens,
         int completionTokens,
+        decimal estimatedCost,
         UsageStatus status,
-        string? failureCode,
+        string? errorSummary,
         DateTimeOffset createdAt)
     {
         Id = id;
@@ -24,11 +28,14 @@ public sealed class UsageLog
         TicketId = ticketId;
         DraftId = draftId;
         Provider = provider;
+        Model = model;
+        ResponseId = responseId;
         PromptTokens = promptTokens;
         CompletionTokens = completionTokens;
         TotalTokens = promptTokens + completionTokens;
+        EstimatedCost = estimatedCost;
         Status = status;
-        FailureCode = failureCode;
+        ErrorSummary = errorSummary;
         CreatedAt = createdAt;
     }
 
@@ -42,15 +49,21 @@ public sealed class UsageLog
 
     public string Provider { get; private set; }
 
+    public string Model { get; private set; }
+
+    public string? ResponseId { get; private set; }
+
     public int PromptTokens { get; private set; }
 
     public int CompletionTokens { get; private set; }
 
     public int TotalTokens { get; private set; }
 
+    public decimal EstimatedCost { get; private set; }
+
     public UsageStatus Status { get; private set; }
 
-    public string? FailureCode { get; private set; }
+    public string? ErrorSummary { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -59,11 +72,16 @@ public sealed class UsageLog
         Guid? ticketId,
         Guid? draftId,
         string provider,
+        string model,
+        string responseId,
         int promptTokens,
         int completionTokens,
+        decimal estimatedCost,
         DateTimeOffset createdAt)
     {
         ValidateProvider(provider);
+        ValidateModel(model);
+        ValidateResponseId(responseId);
         ValidateTokenCounts(promptTokens, completionTokens);
 
         return new UsageLog(
@@ -72,8 +90,11 @@ public sealed class UsageLog
             ticketId,
             draftId,
             provider.Trim(),
+            model.Trim(),
+            responseId.Trim(),
             promptTokens,
             completionTokens,
+            estimatedCost,
             UsageStatus.Succeeded,
             null,
             createdAt);
@@ -84,14 +105,16 @@ public sealed class UsageLog
         Guid? ticketId,
         Guid? draftId,
         string provider,
-        string failureCode,
+        string model,
+        string errorSummary,
         DateTimeOffset createdAt)
     {
         ValidateProvider(provider);
+        ValidateModel(model);
 
-        if (string.IsNullOrWhiteSpace(failureCode))
+        if (string.IsNullOrWhiteSpace(errorSummary))
         {
-            throw new InvalidOperationException("Usage failure code is required.");
+            throw new InvalidOperationException("Usage error summary is required.");
         }
 
         return new UsageLog(
@@ -100,10 +123,13 @@ public sealed class UsageLog
             ticketId,
             draftId,
             provider.Trim(),
+            model.Trim(),
+            null,
             0,
             0,
+            0m,
             UsageStatus.Failed,
-            failureCode.Trim(),
+            errorSummary.Trim(),
             createdAt);
     }
 
@@ -112,6 +138,22 @@ public sealed class UsageLog
         if (string.IsNullOrWhiteSpace(provider))
         {
             throw new InvalidOperationException("Usage provider is required.");
+        }
+    }
+
+    private static void ValidateModel(string model)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+        {
+            throw new InvalidOperationException("Usage model is required.");
+        }
+    }
+
+    private static void ValidateResponseId(string responseId)
+    {
+        if (string.IsNullOrWhiteSpace(responseId))
+        {
+            throw new InvalidOperationException("Usage response id is required.");
         }
     }
 
