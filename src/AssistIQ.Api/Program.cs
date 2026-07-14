@@ -1,16 +1,22 @@
+using System.Text;
+using AssistIQ.Api.Auth;
 using AssistIQ.Application.Abstractions;
+using AssistIQ.Application.Auth;
 using AssistIQ.Infrastructure.Ai;
 using AssistIQ.Infrastructure.Auth;
 using AssistIQ.Infrastructure.Persistence;
 using AssistIQ.Infrastructure.Persistence.Seed;
 using AssistIQ.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddDbContext<AssistIQDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -23,7 +29,32 @@ builder.Services.AddScoped<IRetrievalService, FakeRetrievalService>();
 builder.Services.AddScoped<IAiDraftService, FakeAiDraftService>();
 builder.Services.AddScoped<IUsageRecorder, UsageRecorder>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<DemoDataSeeder>();
+builder.Services.AddHttpContextAccessor();
+
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization(options => options.AddAssistIQPolicies());
 
 var app = builder.Build();
 
@@ -33,6 +64,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
