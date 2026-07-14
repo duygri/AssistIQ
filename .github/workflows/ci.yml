@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-scan:
+    name: Build, test, and scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore AssistIQ.slnx
+
+      - name: Build
+        run: dotnet build AssistIQ.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test AssistIQ.slnx --configuration Release --no-build --verbosity normal
+
+      - name: Vulnerability scan
+        run: dotnet list AssistIQ.slnx package --vulnerable --include-transitive
