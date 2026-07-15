@@ -2,18 +2,25 @@ using AssistIQ.Infrastructure.Persistence;
 using AssistIQ.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Testcontainers.PostgreSql;
 
 namespace AssistIQ.Tests.Api;
 
-public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private SqliteConnection? _connection;
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
+        .WithDatabase("assistiq_tests")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+
+    async Task IAsyncLifetime.InitializeAsync()
+    {
+        await _postgres.StartAsync();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -23,20 +30,10 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["ConnectionStrings:DefaultConnection"] = _postgres.GetConnectionString(),
+                ["ApplyMigrationsOnStartup"] = "false",
                 ["SeedDemoDataOnStartup"] = "false"
             });
-        });
-
-        builder.ConfigureServices(services =>
-        {
-            services.RemoveAll<DbContextOptions<AssistIQDbContext>>();
-            services.RemoveAll<IDbContextOptionsConfiguration<AssistIQDbContext>>();
-
-            _connection = new SqliteConnection("Data Source=:memory:");
-            _connection.Open();
-
-            services.AddDbContext<AssistIQDbContext>(options =>
-                options.UseSqlite(_connection));
         });
     }
 
@@ -45,19 +42,15 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AssistIQDbContext>();
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
 
         var seeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
         await seeder.SeedAsync();
     }
 
-    protected override void Dispose(bool disposing)
+    async Task IAsyncLifetime.DisposeAsync()
     {
-        base.Dispose(disposing);
-
-        if (disposing)
-        {
-            _connection?.Dispose();
-        }
+        await base.DisposeAsync();
+        await _postgres.DisposeAsync();
     }
 }

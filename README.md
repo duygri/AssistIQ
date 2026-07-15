@@ -9,7 +9,7 @@ AssistIQ is a portfolio backend for a support-team AI copilot. It is built to sh
 - ASP.NET Core Web API on .NET 10
 - EF Core with PostgreSQL
 - JWT authentication and policy-based authorization
-- xUnit, WebApplicationFactory, SQLite integration tests
+- xUnit, WebApplicationFactory, PostgreSQL integration tests with Testcontainers
 - OpenAPI in development
 
 ## Architecture Highlights
@@ -270,14 +270,27 @@ The domain also protects the send operation if a draft reaches it without citati
 
 ## Testing Notes
 
-The test suite uses xUnit and WebApplicationFactory. API integration tests currently run on SQLite for fast local and CI feedback, while the production runtime uses PostgreSQL. That provider mismatch is intentional for V1 speed and portability; a high-ROI next step is moving integration tests to Testcontainers with PostgreSQL so database behavior, constraints, and provider-specific SQL are verified against the same engine used in deployment.
+The test suite uses xUnit, WebApplicationFactory, and Testcontainers. API integration tests start an isolated PostgreSQL 16 container, apply the real EF Core migrations, and seed demo users before each test class. This verifies database behavior, constraints, and provider-specific SQL against the same engine used in deployment.
+
+Docker Engine must be running for the complete test suite:
+
+```powershell
+dotnet test AssistIQ.slnx
+```
+
+Pure domain and application unit tests remain container-free and can be run without Docker:
+
+```powershell
+dotnet test AssistIQ.slnx --filter "FullyQualifiedName!~AssistIQ.Tests.Api"
+```
+
+GitHub Actions runs the complete PostgreSQL-backed suite on every push and pull request.
 
 Pagination is intentionally deferred in V1 because the seeded demo data is small. For production hardening, list endpoints such as `GET /api/tickets`, `GET /api/knowledge-documents`, `GET /api/audit-logs`, and `GET /api/usage-logs` should accept page/size parameters and return a paged response envelope.
 
 ## Roadmap
 
 - Hosted demo link or short screen recording for recruiters who will not run Docker locally.
-- Testcontainers-backed PostgreSQL integration tests to remove SQLite/provider mismatch.
 - Real OpenAI integration behind the existing `IAiDraftService`, `IRetrievalService`, and `IUsageRecorder` boundaries.
 - Optional dashboard only if the project is positioned for full-stack roles.
 
