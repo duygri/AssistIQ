@@ -64,6 +64,22 @@ public sealed class KnowledgeDocumentServiceTests
     }
 
     [Fact]
+    public async Task RegisterAsync_WithOversizedTextContent_ShouldReturnValidationError()
+    {
+        await using var scope = await KnowledgeDocumentTestScope.CreateAsync();
+
+        var act = () => scope.Service.RegisterAsync(new RegisterKnowledgeDocumentRequest(
+            "large.md",
+            "text/markdown",
+            1,
+            new string('x', 20_001)),
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<AppException>()
+            .Where(exception => exception.ErrorCode == ErrorCodes.DocumentTooLarge);
+    }
+
+    [Fact]
     public async Task RegisterAsync_WithValidDocument_ShouldCreateReadyDocumentAndAuditLog()
     {
         await using var scope = await KnowledgeDocumentTestScope.CreateAsync();
@@ -82,8 +98,60 @@ public sealed class KnowledgeDocumentServiceTests
         var document = await scope.DbContext.KnowledgeDocuments.SingleAsync();
         document.Status.Should().Be(KnowledgeDocumentStatus.Ready);
 
+        var retrieval = new FakeRetrievalService(scope.DbContext);
+        var sources = await retrieval.RetrieveAsync(
+            new TicketRetrievalInput(Guid.NewGuid(), "When does billing renew?"),
+            CancellationToken.None);
+        sources.Should().ContainSingle();
+        sources[0].QuoteOrExcerpt.Should().Be("Billing renews monthly.");
+
         var audit = await scope.DbContext.AuditLogs.SingleAsync();
         audit.Action.Should().Be(AuditAction.KnowledgeDocumentUploaded);
+    }
+
+    [Fact]
+    public async Task RetrieveAsync_WithMultipleDocuments_ShouldSelectRelevantSource()
+    {
+        await using var scope = await KnowledgeDocumentTestScope.CreateAsync();
+        await scope.Service.RegisterAsync(new RegisterKnowledgeDocumentRequest(
+            "billing.md",
+            "text/markdown",
+            128,
+            "Billing renews monthly."),
+            CancellationToken.None);
+        await scope.Service.RegisterAsync(new RegisterKnowledgeDocumentRequest(
+            "password.md",
+            "text/markdown",
+            128,
+            "Passwords can be reset from account settings."),
+            CancellationToken.None);
+        var retrieval = new FakeRetrievalService(scope.DbContext);
+
+        var sources = await retrieval.RetrieveAsync(
+            new TicketRetrievalInput(Guid.NewGuid(), "How can I reset my password?"),
+            CancellationToken.None);
+
+        sources.Should().ContainSingle();
+        sources[0].FileName.Should().Be("password.md");
+    }
+
+    [Fact]
+    public async Task RetrieveAsync_WithoutRelevantDocument_ShouldReturnNoSources()
+    {
+        await using var scope = await KnowledgeDocumentTestScope.CreateAsync();
+        await scope.Service.RegisterAsync(new RegisterKnowledgeDocumentRequest(
+            "billing.md",
+            "text/markdown",
+            128,
+            "Billing renews monthly."),
+            CancellationToken.None);
+        var retrieval = new FakeRetrievalService(scope.DbContext);
+
+        var sources = await retrieval.RetrieveAsync(
+            new TicketRetrievalInput(Guid.NewGuid(), "Where can I change my profile photo?"),
+            CancellationToken.None);
+
+        sources.Should().BeEmpty();
     }
 
     [Fact]

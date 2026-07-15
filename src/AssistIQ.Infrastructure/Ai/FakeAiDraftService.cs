@@ -4,6 +4,10 @@ namespace AssistIQ.Infrastructure.Ai;
 
 public sealed class FakeAiDraftService : IAiDraftService
 {
+    public string Provider => "fake-ai";
+
+    public string Model => "fake-support-copilot-v1";
+
     public Task<AiDraftResult> GenerateAsync(
         TicketDraftInput input,
         CancellationToken cancellationToken)
@@ -25,8 +29,8 @@ public sealed class FakeAiDraftService : IAiDraftService
         return Task.FromResult(new AiDraftResult(
             answer,
             citations,
-            "fake-ai",
-            "fake-support-copilot-v1",
+            Provider,
+            Model,
             $"resp_{input.TicketId:N}",
             InputTokens: 320,
             OutputTokens: 180));

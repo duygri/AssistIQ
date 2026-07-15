@@ -6,6 +6,7 @@ public sealed class KnowledgeDocument
     {
         FileName = string.Empty;
         ContentType = string.Empty;
+        TextContent = string.Empty;
     }
 
     private KnowledgeDocument(
@@ -13,6 +14,7 @@ public sealed class KnowledgeDocument
         string fileName,
         string contentType,
         long sizeBytes,
+        string textContent,
         Guid uploadedByUserId,
         DateTimeOffset uploadedAt)
     {
@@ -20,6 +22,7 @@ public sealed class KnowledgeDocument
         FileName = fileName;
         ContentType = contentType;
         SizeBytes = sizeBytes;
+        TextContent = textContent;
         UploadedByUserId = uploadedByUserId;
         UploadedAt = uploadedAt;
         Status = KnowledgeDocumentStatus.Indexing;
@@ -32,6 +35,8 @@ public sealed class KnowledgeDocument
     public string ContentType { get; private set; }
 
     public long SizeBytes { get; private set; }
+
+    public string TextContent { get; private set; }
 
     public Guid UploadedByUserId { get; private set; }
 
@@ -53,6 +58,7 @@ public sealed class KnowledgeDocument
         string fileName,
         string contentType,
         long sizeBytes,
+        string textContent,
         Guid uploadedByUserId,
         DateTimeOffset uploadedAt)
     {
@@ -71,11 +77,17 @@ public sealed class KnowledgeDocument
             throw new InvalidOperationException("Knowledge document size must be greater than zero.");
         }
 
+        if (string.IsNullOrWhiteSpace(textContent))
+        {
+            throw new InvalidOperationException("Knowledge document text content is required.");
+        }
+
         return new KnowledgeDocument(
             Guid.NewGuid(),
             fileName.Trim(),
             contentType.Trim(),
             sizeBytes,
+            textContent.Trim(),
             uploadedByUserId,
             uploadedAt);
     }

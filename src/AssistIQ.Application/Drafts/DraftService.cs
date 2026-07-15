@@ -35,10 +35,23 @@ public sealed class DraftService(
                 new TicketDraftInput(ticket.Id, ticket.CustomerQuestion, request.Instructions, sources),
                 cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
-            await usageRecorder.RecordFailedAsync(ticket.Id, currentUser.UserId, "fake-ai", "unknown", exception.Message, cancellationToken);
-            throw new AppException(502, ErrorCodes.IndexingFailed, "Draft generation failed.");
+            var errorSummary = exception.Message.Length <= 1_000
+                ? exception.Message
+                : exception.Message[..1_000];
+            await usageRecorder.RecordFailedAsync(
+                ticket.Id,
+                currentUser.UserId,
+                aiDraftService.Provider,
+                aiDraftService.Model,
+                errorSummary,
+                CancellationToken.None);
+            throw new AppException(502, ErrorCodes.DraftGenerationFailed, "AI draft generation failed.");
         }
 
         var citations = result.Citations.Select(citation => DraftCitation.Create(

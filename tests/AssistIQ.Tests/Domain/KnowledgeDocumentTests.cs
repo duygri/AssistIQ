@@ -15,12 +15,14 @@ public sealed class KnowledgeDocumentTests
             fileName: "billing-faq.pdf",
             contentType: "application/pdf",
             sizeBytes: 120_000,
+            textContent: "Billing renews monthly.",
             uploadedByUserId,
             now);
 
         document.FileName.Should().Be("billing-faq.pdf");
         document.ContentType.Should().Be("application/pdf");
         document.SizeBytes.Should().Be(120_000);
+        document.TextContent.Should().Be("Billing renews monthly.");
         document.UploadedByUserId.Should().Be(uploadedByUserId);
         document.Status.Should().Be(KnowledgeDocumentStatus.Indexing);
         document.UploadedAt.Should().Be(now);
@@ -35,6 +37,7 @@ public sealed class KnowledgeDocumentTests
             "refund-policy.pdf",
             "application/pdf",
             98_000,
+            "Refunds are reviewed within two business days.",
             Guid.NewGuid(),
             DateTimeOffset.UtcNow.AddMinutes(-2));
         var indexedAt = DateTimeOffset.UtcNow;
@@ -55,6 +58,7 @@ public sealed class KnowledgeDocumentTests
             "old-guide.pdf",
             "application/pdf",
             42_000,
+            "Legacy support guide.",
             Guid.NewGuid(),
             DateTimeOffset.UtcNow);
         document.MarkReady("vs_old", "file_old", DateTimeOffset.UtcNow);
@@ -73,6 +77,7 @@ public sealed class KnowledgeDocumentTests
             "broken.pdf",
             "application/pdf",
             1_024,
+            "Broken provider content.",
             Guid.NewGuid(),
             DateTimeOffset.UtcNow);
         var failedAt = DateTimeOffset.UtcNow.AddSeconds(5);

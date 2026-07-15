@@ -10,5 +10,6 @@ public static class ErrorCodes
     public const string DocumentTooLarge = "document_too_large";
     public const string IndexingFailed = "indexing_failed";
     public const string NoReadyKnowledgeDocument = "no_ready_knowledge_document";
+    public const string DraftGenerationFailed = "draft_generation_failed";
     public const string DraftNeedsCitationReview = "draft_needs_citation_review";
 }

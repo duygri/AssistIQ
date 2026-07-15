@@ -16,6 +16,7 @@ public sealed class KnowledgeDocumentConfiguration : IEntityTypeConfiguration<Kn
         builder.Property(document => document.FileName).HasColumnName("file_name").HasMaxLength(260).IsRequired();
         builder.Property(document => document.ContentType).HasColumnName("content_type").HasMaxLength(120).IsRequired();
         builder.Property(document => document.SizeBytes).HasColumnName("size_bytes").IsRequired();
+        builder.Property(document => document.TextContent).HasColumnName("text_content").HasColumnType("text").IsRequired();
         builder.Property(document => document.UploadedByUserId).HasColumnName("uploaded_by_user_id").IsRequired();
         builder.Property(document => document.Status).HasColumnName("status").HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(document => document.ProviderVectorStoreId).HasColumnName("provider_vector_store_id").HasMaxLength(160);

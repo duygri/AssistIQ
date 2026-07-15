@@ -2,13 +2,14 @@
 
 [![CI](https://github.com/duygri/AssistIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/duygri/AssistIQ/actions/workflows/ci.yml)
 
-AssistIQ is a portfolio backend for a support-team AI copilot. It is built to show more than CRUD: JWT auth, RBAC, EF Core/PostgreSQL, audit logs, usage/cost tracking, deterministic fake AI infrastructure, and a ticket-to-draft workflow with citations.
+AssistIQ is a portfolio backend for a support-team AI copilot. It is built to show more than CRUD: JWT auth, RBAC, EF Core/PostgreSQL, audit logs, usage/cost tracking, pluggable AI providers, and a ticket-to-draft workflow with citations.
 
 ## Tech Stack
 
 - ASP.NET Core Web API on .NET 10
 - EF Core with PostgreSQL
 - JWT authentication and policy-based authorization
+- GitHub Models for optional zero-budget AI inference, with a deterministic fake fallback
 - xUnit, WebApplicationFactory, PostgreSQL integration tests with Testcontainers
 - OpenAPI in development
 
@@ -16,7 +17,7 @@ AssistIQ is a portfolio backend for a support-team AI copilot. It is built to sh
 
 - `AssistIQ.Domain`: entity state and business rules such as draft citation gating.
 - `AssistIQ.Application`: DTOs, use-case services, stable error codes, and provider-neutral AI boundaries.
-- `AssistIQ.Infrastructure`: EF Core persistence, repositories, fake AI/retrieval/indexing adapters, JWT, audit, usage recording, and seed data.
+- `AssistIQ.Infrastructure`: EF Core persistence, repositories, GitHub Models and fake AI adapters, retrieval/indexing adapters, JWT, audit, usage recording, and seed data.
 - `AssistIQ.Api`: controllers, JWT bearer auth, and policy-based authorization.
 
 ```mermaid
@@ -26,7 +27,9 @@ flowchart LR
     App --> Domain[AssistIQ.Domain]
     App --> Infra[AssistIQ.Infrastructure]
     Infra --> Db[(PostgreSQL)]
-    Infra --> FakeAi[Deterministic fake AI]
+    Infra --> Ai{AI provider}
+    Ai --> FakeAi[Deterministic fake AI]
+    Ai --> GitHubModels[GitHub Models]
     Infra --> Audit[Audit and usage logs]
 ```
 
@@ -36,11 +39,12 @@ flowchart LR
 - Admin knowledge document registration and disable workflow
 - Support Agent ticket creation
 - AI draft generation from ready knowledge documents
+- Optional real inference through GitHub Models free quota
 - Citation gate: drafts without citations cannot be sent
 - Draft editing and sending
 - Audit log and usage log admin APIs
 
-Out of scope for V1: real OpenAI calls, real file upload, multi-tenant vector stores, billing, mobile app, and real support inbox integrations.
+Out of scope for V1: paid AI APIs, real file upload, multi-tenant vector stores, billing, mobile app, and real support inbox integrations.
 
 ## Local Setup
 
@@ -72,6 +76,37 @@ OpenAPI is available in Development at:
 ```text
 /openapi/v1.json
 ```
+
+## Zero-Budget AI Provider
+
+The API uses the deterministic `Fake` provider by default, so cloning, tests, CI, and the Docker demo never require an AI token or consume model quota.
+
+To generate drafts with a real model at no cost, create a fine-grained GitHub personal access token with the `models: read` permission. Keep paid GitHub Models usage disabled so requests stop instead of generating charges when the free quota is exhausted.
+
+Enable GitHub Models for the current PowerShell session:
+
+```powershell
+$env:AI_PROVIDER = "GitHubModels"
+$env:GITHUB_MODELS_TOKEN = "your-fine-grained-github-pat"
+dotnet run --project src\AssistIQ.Api
+```
+
+The default model is `openai/gpt-4.1`. Override it without changing source files:
+
+```powershell
+$env:Ai__GitHubModels__Model = "openai/gpt-4.1-mini"
+```
+
+For the Docker demo, set the same two environment variables before `docker compose up --build`; Compose passes them to the API container. Tokens belong only in environment variables or a secret manager. Never add a real token to `appsettings`, `.env` committed to Git, or request files.
+
+Return to the offline provider with:
+
+```powershell
+$env:AI_PROVIDER = "Fake"
+Remove-Item Env:GITHUB_MODELS_TOKEN -ErrorAction SilentlyContinue
+```
+
+Successful GitHub Models calls record provider, model, response ID, and token counts. The adapter requests structured JSON and accepts citations only when the returned source ID exists and the quoted text appears in the stored knowledge source. Estimated cost is stored as zero because this project intentionally targets the included free quota.
 
 ## Docker Demo Setup
 
@@ -291,7 +326,7 @@ Pagination is intentionally deferred in V1 because the seeded demo data is small
 ## Roadmap
 
 - Hosted demo link or short screen recording for recruiters who will not run Docker locally.
-- Real OpenAI integration behind the existing `IAiDraftService`, `IRetrievalService`, and `IUsageRecorder` boundaries.
+- Optional local Ollama provider for fully offline, open-model inference.
 - Optional dashboard only if the project is positioned for full-stack roles.
 
 ## Verification

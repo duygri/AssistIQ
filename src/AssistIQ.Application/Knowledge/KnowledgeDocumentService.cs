@@ -1,3 +1,4 @@
+using System.Text;
 using AssistIQ.Application.Abstractions;
 using AssistIQ.Application.Common;
 using AssistIQ.Domain.Audit;
@@ -13,6 +14,7 @@ public sealed class KnowledgeDocumentService(
     ISystemClock clock)
 {
     private const long MaxFileSizeBytes = 5 * 1024 * 1024;
+    private const int MaxTextContentCharacters = 20_000;
 
     private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -31,6 +33,7 @@ public sealed class KnowledgeDocumentService(
             request.FileName,
             request.ContentType,
             request.SizeBytes,
+            request.TextContent,
             currentUser.UserId,
             clock.UtcNow);
 
@@ -131,7 +134,9 @@ public sealed class KnowledgeDocumentService(
             throw new AppException(400, ErrorCodes.UnsupportedDocumentFormat, "Only .md, .txt, and .pdf are supported.");
         }
 
-        if (request.SizeBytes > MaxFileSizeBytes)
+        if (request.SizeBytes > MaxFileSizeBytes ||
+            request.TextContent.Length > MaxTextContentCharacters ||
+            Encoding.UTF8.GetByteCount(request.TextContent) > MaxFileSizeBytes)
         {
             throw new AppException(400, ErrorCodes.DocumentTooLarge, "Knowledge document must be 5 MB or smaller.");
         }

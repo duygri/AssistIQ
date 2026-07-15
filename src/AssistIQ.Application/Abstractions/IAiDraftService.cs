@@ -2,6 +2,10 @@ namespace AssistIQ.Application.Abstractions;
 
 public interface IAiDraftService
 {
+    string Provider { get; }
+
+    string Model { get; }
+
     Task<AiDraftResult> GenerateAsync(
         TicketDraftInput input,
         CancellationToken cancellationToken);

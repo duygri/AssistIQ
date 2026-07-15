@@ -21,7 +21,7 @@ public sealed class UsageRecorder(
         int outputTokens,
         CancellationToken cancellationToken)
     {
-        var cost = CalculateCost(inputTokens, outputTokens);
+        var cost = CalculateCost(provider, inputTokens, outputTokens);
         var log = UsageLog.Succeeded(
             actorUserId,
             ticketId,
@@ -61,8 +61,13 @@ public sealed class UsageRecorder(
         return log;
     }
 
-    private decimal CalculateCost(int inputTokens, int outputTokens)
+    private decimal CalculateCost(string provider, int inputTokens, int outputTokens)
     {
+        if (provider.Equals(GitHubModelsAiDraftService.ProviderName, StringComparison.OrdinalIgnoreCase))
+        {
+            return 0m;
+        }
+
         var costOptions = options.Value;
         return (inputTokens / 1_000_000m * costOptions.DefaultInputCostPer1M)
             + (outputTokens / 1_000_000m * costOptions.DefaultOutputCostPer1M);

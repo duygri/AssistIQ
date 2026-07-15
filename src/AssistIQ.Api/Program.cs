@@ -31,7 +31,7 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ISystemClock, SystemClock>();
 builder.Services.AddScoped<IKnowledgeIndexer, FakeKnowledgeIndexer>();
 builder.Services.AddScoped<IRetrievalService, FakeRetrievalService>();
-builder.Services.AddScoped<IAiDraftService, FakeAiDraftService>();
+builder.Services.AddAssistIQAi(builder.Configuration);
 builder.Services.AddScoped<IUsageRecorder, UsageRecorder>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
