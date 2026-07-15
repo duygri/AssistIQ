@@ -19,6 +19,17 @@ AssistIQ is a portfolio backend for a support-team AI copilot. It is built to sh
 - `AssistIQ.Infrastructure`: EF Core persistence, repositories, fake AI/retrieval/indexing adapters, JWT, audit, usage recording, and seed data.
 - `AssistIQ.Api`: controllers, JWT bearer auth, and policy-based authorization.
 
+```mermaid
+flowchart LR
+    Client[API client / Swagger / .http] --> Api[AssistIQ.Api]
+    Api --> App[AssistIQ.Application]
+    App --> Domain[AssistIQ.Domain]
+    App --> Infra[AssistIQ.Infrastructure]
+    Infra --> Db[(PostgreSQL)]
+    Infra --> FakeAi[Deterministic fake AI]
+    Infra --> Audit[Audit and usage logs]
+```
+
 ## V1 Scope
 
 - Admin and Support Agent login
@@ -108,6 +119,8 @@ Seeded accounts:
 - Admin: `admin@assistiq.local` / `Admin123!`
 - Support Agent: `agent@assistiq.local` / `Agent123!`
 
+These credentials are intentionally public demo seed data. Production secrets and user credentials should be provided through a secret manager or environment variables, not committed configuration.
+
 ## Core Demo Flow
 
 1. Login as Admin.
@@ -119,6 +132,119 @@ Seeded accounts:
 7. Login as Admin and inspect `GET /api/audit-logs` and `GET /api/usage-logs`.
 
 The request collection in `src/AssistIQ.Api/AssistIQ.Api.http` follows this flow.
+
+## Example Requests and Responses
+
+Login returns a JWT and the current user's role:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "agent@assistiq.local",
+  "password": "Agent123!"
+}
+```
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "email": "agent@assistiq.local",
+    "displayName": "Support Agent",
+    "role": "SupportAgent"
+  }
+}
+```
+
+Registering a knowledge document makes it available to the deterministic retrieval adapter:
+
+```http
+POST /api/knowledge-documents
+Authorization: Bearer <admin-jwt>
+Content-Type: application/json
+
+{
+  "fileName": "billing.md",
+  "contentType": "text/markdown",
+  "sizeBytes": 512,
+  "textContent": "Billing details can be updated from workspace settings."
+}
+```
+
+```json
+{
+  "id": "22222222-2222-2222-2222-222222222222",
+  "fileName": "billing.md",
+  "contentType": "text/markdown",
+  "sizeBytes": 512,
+  "status": "Ready",
+  "providerVectorStoreId": "fake-vector-store",
+  "providerFileId": "fake-file-22222222",
+  "errorSummary": null,
+  "uploadedAt": "2026-07-15T10:00:00Z",
+  "indexedAt": "2026-07-15T10:00:00Z",
+  "disabledAt": null
+}
+```
+
+Generating a draft creates a versioned answer with citations. The citation gate is a domain rule: a draft cannot be sent unless it has at least one citation.
+
+```http
+POST /api/tickets/33333333-3333-3333-3333-333333333333/drafts/generate
+Authorization: Bearer <agent-jwt>
+Content-Type: application/json
+
+{
+  "instructions": "Use a concise and friendly tone."
+}
+```
+
+```json
+{
+  "id": "44444444-4444-4444-4444-444444444444",
+  "ticketId": "33333333-3333-3333-3333-333333333333",
+  "versionNumber": 1,
+  "source": "AiGenerated",
+  "status": "Generated",
+  "generatedAnswer": "Thanks for reaching out. Based on our support knowledge, how do I update billing details? can be handled using the cited policy.",
+  "editedAnswer": null,
+  "createdAt": "2026-07-15T10:01:00Z",
+  "editedAt": null,
+  "sentAt": null,
+  "citations": [
+    {
+      "id": "55555555-5555-5555-5555-555555555555",
+      "knowledgeDocumentId": "22222222-2222-2222-2222-222222222222",
+      "fileName": "billing.md",
+      "providerFileId": "fake-file-22222222",
+      "quote": "Relevant support policy excerpt from billing.md.",
+      "providerResultId": "fake_result_1",
+      "confidence": 0.91
+    }
+  ]
+}
+```
+
+If retrieval finds no ready knowledge document, draft generation fails with a stable error code:
+
+```json
+{
+  "errorCode": "no_ready_knowledge_document",
+  "message": "At least one ready knowledge document is required."
+}
+```
+
+The domain also protects the send operation if a draft reaches it without citations:
+
+```json
+{
+  "errorCode": "draft_needs_citation_review",
+  "message": "Draft cannot be sent without at least one citation."
+}
+```
 
 ## API Surface
 
@@ -137,6 +263,19 @@ The request collection in `src/AssistIQ.Api/AssistIQ.Api.http` follows this flow
 | Drafts | `POST /api/drafts/{id}/send` | Admin or owner |
 | Admin Logs | `GET /api/audit-logs` | Admin |
 | Admin Logs | `GET /api/usage-logs` | Admin |
+
+## Testing Notes
+
+The test suite uses xUnit and WebApplicationFactory. API integration tests currently run on SQLite for fast local and CI feedback, while the production runtime uses PostgreSQL. That provider mismatch is intentional for V1 speed and portability; a high-ROI next step is moving integration tests to Testcontainers with PostgreSQL so database behavior, constraints, and provider-specific SQL are verified against the same engine used in deployment.
+
+Pagination is intentionally deferred in V1 because the seeded demo data is small. For production hardening, list endpoints such as `GET /api/tickets`, `GET /api/knowledge-documents`, `GET /api/audit-logs`, and `GET /api/usage-logs` should accept page/size parameters and return a paged response envelope.
+
+## Roadmap
+
+- Hosted demo link or short screen recording for recruiters who will not run Docker locally.
+- Testcontainers-backed PostgreSQL integration tests to remove SQLite/provider mismatch.
+- Real OpenAI integration behind the existing `IAiDraftService`, `IRetrievalService`, and `IUsageRecorder` boundaries.
+- Optional dashboard only if the project is positioned for full-stack roles.
 
 ## Verification
 
