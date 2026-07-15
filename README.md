@@ -121,6 +121,10 @@ Seeded accounts:
 
 These credentials are intentionally public demo seed data. Production secrets and user credentials should be provided through a secret manager or environment variables, not committed configuration.
 
+## Demo Preview
+
+![AssistIQ demo preview](docs/assets/assistiq-demo-preview.svg)
+
 ## Core Demo Flow
 
 1. Login as Admin.
