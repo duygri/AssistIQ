@@ -8,7 +8,7 @@ namespace AssistIQ.Tests.Api;
 
 public sealed class RateLimitingApiTests : IAsyncLifetime
 {
-    private readonly CustomWebApplicationFactory _factory = new();
+    private readonly CustomWebApplicationFactory _factory = new(useProductionRateLimits: true);
 
     public async Task InitializeAsync()
     {

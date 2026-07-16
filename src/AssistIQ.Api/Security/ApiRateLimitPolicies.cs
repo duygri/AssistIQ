@@ -13,16 +13,20 @@ public static class ApiRateLimitPolicies
 
     private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
 
-    public static RateLimitPartition<string> CreateLoginPartition(HttpContext context)
+    public static RateLimitPartition<string> CreateLoginPartition(
+        HttpContext context,
+        int permitLimit = LoginPermitLimit)
     {
         var remoteIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return CreateFixedWindowPartition($"login:{remoteIp}", LoginPermitLimit);
+        return CreateFixedWindowPartition($"login:{remoteIp}", permitLimit);
     }
 
-    public static RateLimitPartition<string> CreateAiDraftPartition(HttpContext context)
+    public static RateLimitPartition<string> CreateAiDraftPartition(
+        HttpContext context,
+        int permitLimit = AiDraftPermitLimit)
     {
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
-        return CreateFixedWindowPartition($"ai-draft:{userId}", AiDraftPermitLimit);
+        return CreateFixedWindowPartition($"ai-draft:{userId}", permitLimit);
     }
 
     public static async ValueTask WriteRejectedResponseAsync(
@@ -47,6 +51,8 @@ public static class ApiRateLimitPolicies
 
     private static RateLimitPartition<string> CreateFixedWindowPartition(string key, int permitLimit)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(permitLimit, 1);
+
         return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = permitLimit,

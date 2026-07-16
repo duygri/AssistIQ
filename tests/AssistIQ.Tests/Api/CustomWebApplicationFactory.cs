@@ -11,11 +11,22 @@ namespace AssistIQ.Tests.Api;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    private readonly bool _useProductionRateLimits;
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("assistiq_tests")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
+
+    public CustomWebApplicationFactory()
+        : this(useProductionRateLimits: false)
+    {
+    }
+
+    public CustomWebApplicationFactory(bool useProductionRateLimits)
+    {
+        _useProductionRateLimits = useProductionRateLimits;
+    }
 
     async Task IAsyncLifetime.InitializeAsync()
     {
@@ -32,7 +43,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:DefaultConnection"] = _postgres.GetConnectionString(),
                 ["ApplyMigrationsOnStartup"] = "false",
-                ["SeedDemoDataOnStartup"] = "false"
+                ["SeedDemoDataOnStartup"] = "false",
+                ["RateLimiting:LoginPermitLimit"] = _useProductionRateLimits ? "5" : "1000",
+                ["RateLimiting:AiDraftPermitLimit"] = _useProductionRateLimits ? "10" : "1000"
             });
         });
     }

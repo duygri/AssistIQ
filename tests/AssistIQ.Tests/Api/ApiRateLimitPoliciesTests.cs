@@ -5,11 +5,32 @@ using AssistIQ.Api.Security;
 using AssistIQ.Application.Common;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AssistIQ.Tests.Api;
 
 public sealed class ApiRateLimitPoliciesTests
 {
+    [Fact]
+    public void AddAssistIQRateLimiting_ShouldResolveFinalConfigurationValues()
+    {
+        var configuration = new ConfigurationManager();
+        configuration["RateLimiting:LoginPermitLimit"] = "5";
+        configuration["RateLimiting:AiDraftPermitLimit"] = "10";
+        var services = new ServiceCollection();
+        services.AddAssistIQRateLimiting(configuration);
+
+        configuration["RateLimiting:LoginPermitLimit"] = "1000";
+        configuration["RateLimiting:AiDraftPermitLimit"] = "1000";
+        using var provider = services.BuildServiceProvider();
+
+        var options = provider.GetRequiredService<IOptions<AssistIQRateLimitingOptions>>().Value;
+        options.LoginPermitLimit.Should().Be(1000);
+        options.AiDraftPermitLimit.Should().Be(1000);
+    }
+
     [Fact]
     public void CreateLoginPartition_ShouldPermitFiveRequestsAndRejectSixth()
     {
@@ -25,6 +46,23 @@ public sealed class ApiRateLimitPoliciesTests
         }
 
         using var rejectedLease = limiter.AttemptAcquire();
+        rejectedLease.IsAcquired.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CreateLoginPartition_WithConfiguredLimit_ShouldUseConfiguredValue()
+    {
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = IPAddress.Parse("192.0.2.11");
+        var partition = ApiRateLimitPolicies.CreateLoginPartition(context, permitLimit: 2);
+        using var limiter = partition.Factory(partition.PartitionKey);
+
+        using var firstLease = limiter.AttemptAcquire();
+        using var secondLease = limiter.AttemptAcquire();
+        using var rejectedLease = limiter.AttemptAcquire();
+
+        firstLease.IsAcquired.Should().BeTrue();
+        secondLease.IsAcquired.Should().BeTrue();
         rejectedLease.IsAcquired.Should().BeFalse();
     }
 

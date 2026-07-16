@@ -7,8 +7,9 @@ Protect login and AI draft generation from brute force and abuse without adding 
 ## Decisions
 
 - Use ASP.NET Core's built-in fixed-window rate limiter.
-- Limit login to 5 requests per minute per remote IP address.
-- Limit AI draft generation to 10 requests per minute per authenticated user ID.
+- Limit login to 5 requests per minute per remote IP address by default.
+- Limit AI draft generation to 10 requests per minute per authenticated user ID by default.
+- Read permit limits from validated configuration so test hosts can isolate unrelated scenarios without changing production defaults.
 - Do not queue excess requests.
 - Return HTTP 429 with `rate_limit_exceeded`, a controlled message, `correlationId`, and `Retry-After` when available.
 - Apply rate limiting only to login and draft generation. Health checks and read endpoints remain unaffected.

@@ -24,7 +24,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
-builder.Services.AddAssistIQRateLimiting();
+builder.Services.AddAssistIQRateLimiting(builder.Configuration);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddDbContext<AssistIQDbContext>(options =>
