@@ -18,11 +18,11 @@
 - Modify: `src/AssistIQ.Api/Program.cs`
 - Create: `src/AssistIQ.Api/Errors/ApiErrorResponseFactory.cs`
 
-- [ ] Write an integration test that posts an invalid login email containing a secret marker.
-- [ ] Assert HTTP 400 contains only `validation_failed`, a controlled message, and `correlationId`, and does not echo the marker or validation internals.
-- [ ] Run the focused test and confirm it fails against the default MVC validation response.
-- [ ] Add data annotations to `LoginRequest` and configure `InvalidModelStateResponseFactory` through a focused response factory.
-- [ ] Run the focused test and confirm it passes.
+- [x] Write an integration test that posts an invalid login email containing a secret marker.
+- [x] Assert HTTP 400 contains only `validation_failed`, a controlled message, and `correlationId`, and does not echo the marker or validation internals.
+- [x] Run the focused test and confirm it fails against the default MVC validation response.
+- [x] Add data annotations to `LoginRequest` and configure `InvalidModelStateResponseFactory` through a focused response factory.
+- [x] Run the focused test and confirm it passes.
 
 ### Task 2: Add DTO boundary validation
 
@@ -34,11 +34,11 @@
 - Modify: `src/AssistIQ.Application/Knowledge/RegisterKnowledgeDocumentRequest.cs`
 - Test: `tests/AssistIQ.Tests/Api/RequestInputValidationTests.cs`
 
-- [ ] Add failing theory tests for each accepted maximum and each value one character above the maximum.
-- [ ] Add failing tests for required fields, email shape, and the knowledge-size numeric range.
-- [ ] Run the focused tests and verify the expected boundary failures.
-- [ ] Add built-in data annotations matching the design limits.
-- [ ] Run the focused tests and verify all boundaries pass.
+- [x] Add failing boundary tests for each accepted maximum and each value one character above the maximum.
+- [x] Add failing tests for required fields, email shape, and the knowledge-size numeric range.
+- [x] Run the focused tests and verify the expected boundary failures.
+- [x] Add built-in data annotations matching the design limits.
+- [x] Run the focused tests and verify all boundaries pass.
 
 ### Task 3: Require JSON input
 
@@ -49,10 +49,10 @@
 - Modify: `src/AssistIQ.Api/Controllers/KnowledgeDocumentsController.cs`
 - Test: `tests/AssistIQ.Tests/Api/RequestInputValidationTests.cs`
 
-- [ ] Add a failing integration test that sends a valid login body as `text/plain`.
-- [ ] Assert HTTP 415 and verify the credentials are absent from the response.
-- [ ] Add `[Consumes("application/json")]` to every action that binds a body DTO.
-- [ ] Run the focused tests and confirm JSON with charset remains accepted while `text/plain` is rejected.
+- [x] Add an integration test that sends a valid login body as `text/plain` and a failing metadata test for explicit JSON contracts.
+- [x] Assert HTTP 415 and verify the credentials are absent from the response.
+- [x] Add `[Consumes("application/json")]` to every action that binds a body DTO.
+- [x] Run the focused tests and confirm JSON with charset remains accepted while `text/plain` is rejected.
 
 ### Task 4: Enforce the 256 KiB request limit
 
@@ -66,11 +66,11 @@
 - Test: `tests/AssistIQ.Tests/Api/RequestBodySizeLimitMiddlewareTests.cs`
 - Test: `tests/AssistIQ.Tests/Api/RequestInputValidationTests.cs`
 
-- [ ] Add unit tests for the default/configured limit and middleware pass-through behavior.
-- [ ] Add a failing integration test with a declared request body over 256 KiB containing a secret marker.
-- [ ] Assert HTTP 413 returns `request_too_large`, `correlationId`, and no marker.
-- [ ] Bind validated options, configure Kestrel's `MaxRequestBodySize`, and add early request-size middleware.
-- [ ] Run unit and integration tests and verify the next delegate is not called for oversized requests.
+- [x] Add unit tests for the default/configured limit and middleware pass-through behavior.
+- [x] Add a failing integration test with a declared request body over 256 KiB containing a secret marker.
+- [x] Assert HTTP 413 returns `request_too_large`, `correlationId`, and no marker.
+- [x] Bind validated options, configure Kestrel's `MaxRequestBodySize`, and add early request-size middleware.
+- [x] Run unit and integration tests and verify the next delegate is not called for oversized requests.
 
 ### Task 5: Verify and publish
 
@@ -78,11 +78,11 @@
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-07-16-request-input-hardening-c.md`
 
-- [ ] Document request limits and the safe validation contract.
-- [ ] Run `dotnet test AssistIQ.slnx --filter "FullyQualifiedName!~AssistIQ.Tests.Api"` with the working local .NET SDK.
-- [ ] Run `dotnet build AssistIQ.slnx -c Release --no-restore`.
-- [ ] Run `dotnet list AssistIQ.slnx package --vulnerable --include-transitive`.
-- [ ] Scan tracked files and Git history for secret patterns and sensitive logging.
+- [x] Document request limits and the safe validation contract.
+- [x] Run `dotnet test AssistIQ.slnx --filter "FullyQualifiedName!~AssistIQ.Tests.Api"` with the working local .NET SDK.
+- [x] Run `dotnet build AssistIQ.slnx -c Release --no-restore`.
+- [x] Run `dotnet list AssistIQ.slnx package --vulnerable --include-transitive`.
+- [x] Scan tracked files and Git history for secret patterns and sensitive logging.
 - [ ] Inspect `git diff --check` and the complete diff.
 - [ ] Commit and push the milestone.
 - [ ] Confirm the full PostgreSQL integration suite, vulnerability scan, and Docker build pass in GitHub Actions.

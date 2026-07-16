@@ -17,6 +17,7 @@ public sealed class KnowledgeDocumentsController(KnowledgeDocumentService servic
     }
 
     [HttpPost]
+    [Consumes("application/json")]
     public async Task<ActionResult<KnowledgeDocumentDto>> Register(
         RegisterKnowledgeDocumentRequest request,
         CancellationToken cancellationToken)

@@ -11,6 +11,7 @@ namespace AssistIQ.Api.Controllers;
 public sealed class TicketsController(TicketService service) : ControllerBase
 {
     [HttpPost]
+    [Consumes("application/json")]
     public async Task<ActionResult<TicketDto>> Create(CreateTicketRequest request, CancellationToken cancellationToken)
     {
         return Ok(await service.CreateAsync(request, cancellationToken));

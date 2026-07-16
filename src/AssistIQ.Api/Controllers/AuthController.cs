@@ -11,6 +11,7 @@ namespace AssistIQ.Api.Controllers;
 public sealed class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("login")]
+    [Consumes("application/json")]
     [EnableRateLimiting(ApiRateLimitPolicies.Login)]
     public async Task<ActionResult<LoginResponse>> Login(
         LoginRequest request,

@@ -321,6 +321,14 @@ dotnet test AssistIQ.slnx --filter "FullyQualifiedName!~AssistIQ.Tests.Api"
 
 GitHub Actions runs the complete PostgreSQL-backed suite on every push and pull request.
 
+## Request Security
+
+AssistIQ rejects request bodies larger than 256 KiB before controller execution. Actions that bind request bodies explicitly accept `application/json`, and transport DTOs enforce length, email, and numeric boundaries that match the database and application rules.
+
+Invalid model input returns a controlled `validation_failed` response with a correlation ID. Oversized requests return `request_too_large` when the application can produce the response. Neither response echoes submitted field values, credentials, request bodies, or internal exception details.
+
+The body limit is configurable through `RequestSecurity:MaxRequestBodySizeBytes`; keep the default or a lower value for Internet-facing deployments unless a reviewed endpoint requires more capacity.
+
 Pagination is intentionally deferred in V1 because the seeded demo data is small. For production hardening, list endpoints such as `GET /api/tickets`, `GET /api/knowledge-documents`, `GET /api/audit-logs`, and `GET /api/usage-logs` should accept page/size parameters and return a paged response envelope.
 
 ## Roadmap

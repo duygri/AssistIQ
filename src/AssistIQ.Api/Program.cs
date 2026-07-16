@@ -20,11 +20,17 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = ApiErrorResponseFactory.CreateValidationError;
+    });
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddAssistIQRateLimiting(builder.Configuration);
+builder.AddAssistIQRequestInputSecurity();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddDbContext<AssistIQDbContext>(options =>
@@ -90,6 +96,7 @@ else
 }
 
 app.UseExceptionHandler();
+app.UseMiddleware<RequestBodySizeLimitMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

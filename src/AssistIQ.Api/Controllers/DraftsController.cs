@@ -12,6 +12,7 @@ namespace AssistIQ.Api.Controllers;
 public sealed class DraftsController(DraftService service) : ControllerBase
 {
     [HttpPost("api/tickets/{ticketId:guid}/drafts/generate")]
+    [Consumes("application/json")]
     [EnableRateLimiting(ApiRateLimitPolicies.AiDraft)]
     public async Task<ActionResult<DraftDto>> Generate(
         Guid ticketId,
@@ -22,6 +23,7 @@ public sealed class DraftsController(DraftService service) : ControllerBase
     }
 
     [HttpPatch("api/drafts/{id:guid}")]
+    [Consumes("application/json")]
     public async Task<ActionResult<DraftDto>> Update(
         Guid id,
         UpdateDraftRequest request,
