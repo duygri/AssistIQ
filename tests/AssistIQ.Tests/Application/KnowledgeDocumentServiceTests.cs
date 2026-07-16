@@ -172,7 +172,8 @@ public sealed class KnowledgeDocumentServiceTests
 
         var document = await scope.DbContext.KnowledgeDocuments.SingleAsync();
         document.Status.Should().Be(KnowledgeDocumentStatus.Failed);
-        document.ErrorSummary.Should().Contain("Fake indexer");
+        document.ErrorSummary.Should().Be(ErrorCodes.IndexingFailed);
+        document.ErrorSummary.Should().NotContain("Fake indexer");
     }
 
     [Fact]

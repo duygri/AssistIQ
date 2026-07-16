@@ -39,17 +39,14 @@ public sealed class DraftService(
         {
             throw;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            var errorSummary = exception.Message.Length <= 1_000
-                ? exception.Message
-                : exception.Message[..1_000];
             await usageRecorder.RecordFailedAsync(
                 ticket.Id,
                 currentUser.UserId,
                 aiDraftService.Provider,
                 aiDraftService.Model,
-                errorSummary,
+                ErrorCodes.DraftGenerationFailed,
                 CancellationToken.None);
             throw new AppException(502, ErrorCodes.DraftGenerationFailed, "AI draft generation failed.");
         }
@@ -106,9 +103,12 @@ public sealed class DraftService(
             draft.Send();
             ticket.MarkSent(DateTimeOffset.UtcNow);
         }
-        catch (InvalidOperationException exception)
+        catch (InvalidOperationException)
         {
-            throw new AppException(409, ErrorCodes.DraftNeedsCitationReview, exception.Message);
+            throw new AppException(
+                409,
+                ErrorCodes.DraftNeedsCitationReview,
+                "Draft citations must be reviewed before sending.");
         }
 
         await drafts.SaveChangesAsync(cancellationToken);

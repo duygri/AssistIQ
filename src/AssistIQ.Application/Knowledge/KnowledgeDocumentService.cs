@@ -63,9 +63,9 @@ public sealed class KnowledgeDocumentService(
 
             return ToDto(document);
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            document.MarkFailed(exception.Message, clock.UtcNow);
+            document.MarkFailed(ErrorCodes.IndexingFailed, clock.UtcNow);
             await repository.SaveChangesAsync(cancellationToken);
 
             throw new AppException(502, ErrorCodes.IndexingFailed, "Knowledge document indexing failed.");
@@ -103,9 +103,9 @@ public sealed class KnowledgeDocumentService(
         {
             document.Disable(clock.UtcNow);
         }
-        catch (InvalidOperationException exception)
+        catch (InvalidOperationException)
         {
-            throw new AppException(409, ErrorCodes.Conflict, exception.Message);
+            throw new AppException(409, ErrorCodes.Conflict, "Knowledge document cannot be disabled in its current state.");
         }
 
         await repository.SaveChangesAsync(cancellationToken);

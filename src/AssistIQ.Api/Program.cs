@@ -1,5 +1,7 @@
 using System.Text;
 using AssistIQ.Api.Auth;
+using AssistIQ.Api.Errors;
+using AssistIQ.Api.Security;
 using AssistIQ.Application.Abstractions;
 using AssistIQ.Application.AuditLogs;
 using AssistIQ.Application.Auth;
@@ -20,6 +22,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddDbContext<AssistIQDbContext>(options =>
@@ -51,11 +55,11 @@ builder.Services.AddScoped<UsageLogQueryService>();
 builder.Services.AddScoped<DemoDataSeeder>();
 builder.Services.AddHttpContextAccessor();
 
-var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -73,11 +77,18 @@ builder.Services.AddAuthorization(options => options.AddAssistIQPolicies());
 
 var app = builder.Build();
 
+ProductionSecurityValidator.Validate(app.Configuration, app.Environment.IsProduction());
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseHsts();
+}
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

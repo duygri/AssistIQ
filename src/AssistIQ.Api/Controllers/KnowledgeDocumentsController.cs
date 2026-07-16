@@ -1,5 +1,4 @@
 using AssistIQ.Api.Auth;
-using AssistIQ.Application.Common;
 using AssistIQ.Application.Knowledge;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +21,7 @@ public sealed class KnowledgeDocumentsController(KnowledgeDocumentService servic
         RegisterKnowledgeDocumentRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            return Ok(await service.RegisterAsync(request, cancellationToken));
-        }
-        catch (AppException exception)
-        {
-            return ToErrorResult(exception);
-        }
+        return Ok(await service.RegisterAsync(request, cancellationToken));
     }
 
     [HttpPost("{id:guid}/disable")]
@@ -37,30 +29,6 @@ public sealed class KnowledgeDocumentsController(KnowledgeDocumentService servic
         Guid id,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            return Ok(await service.DisableAsync(id, cancellationToken));
-        }
-        catch (AppException exception)
-        {
-            return ToErrorResult(exception);
-        }
-    }
-
-    private ActionResult ToErrorResult(AppException exception)
-    {
-        var body = new
-        {
-            errorCode = exception.ErrorCode,
-            message = exception.Message
-        };
-
-        return exception.StatusCode switch
-        {
-            StatusCodes.Status400BadRequest => BadRequest(body),
-            StatusCodes.Status404NotFound => NotFound(body),
-            StatusCodes.Status409Conflict => Conflict(body),
-            _ => StatusCode(exception.StatusCode, body)
-        };
+        return Ok(await service.DisableAsync(id, cancellationToken));
     }
 }

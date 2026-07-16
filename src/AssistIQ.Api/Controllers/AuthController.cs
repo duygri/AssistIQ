@@ -1,5 +1,4 @@
 using AssistIQ.Application.Auth;
-using AssistIQ.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,35 +13,13 @@ public sealed class AuthController(AuthService authService) : ControllerBase
         LoginRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            return Ok(await authService.LoginAsync(request, cancellationToken));
-        }
-        catch (AppException exception) when (exception.StatusCode == StatusCodes.Status401Unauthorized)
-        {
-            return Unauthorized(new
-            {
-                errorCode = exception.ErrorCode,
-                message = exception.Message
-            });
-        }
+        return Ok(await authService.LoginAsync(request, cancellationToken));
     }
 
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<CurrentUserResponse>> Me(CancellationToken cancellationToken)
     {
-        try
-        {
-            return Ok(await authService.GetCurrentUserAsync(cancellationToken));
-        }
-        catch (AppException exception) when (exception.StatusCode == StatusCodes.Status401Unauthorized)
-        {
-            return Unauthorized(new
-            {
-                errorCode = exception.ErrorCode,
-                message = exception.Message
-            });
-        }
+        return Ok(await authService.GetCurrentUserAsync(cancellationToken));
     }
 }
