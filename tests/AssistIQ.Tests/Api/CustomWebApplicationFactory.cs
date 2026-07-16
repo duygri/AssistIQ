@@ -23,7 +23,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
     }
 
-    public CustomWebApplicationFactory(bool useProductionRateLimits)
+    internal CustomWebApplicationFactory(bool useProductionRateLimits)
     {
         _useProductionRateLimits = useProductionRateLimits;
     }
