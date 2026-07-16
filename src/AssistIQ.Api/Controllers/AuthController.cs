@@ -1,5 +1,7 @@
 using AssistIQ.Application.Auth;
+using AssistIQ.Api.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssistIQ.Api.Controllers;
@@ -9,6 +11,7 @@ namespace AssistIQ.Api.Controllers;
 public sealed class AuthController(AuthService authService) : ControllerBase
 {
     [HttpPost("login")]
+    [EnableRateLimiting(ApiRateLimitPolicies.Login)]
     public async Task<ActionResult<LoginResponse>> Login(
         LoginRequest request,
         CancellationToken cancellationToken)

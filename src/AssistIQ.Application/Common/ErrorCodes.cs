@@ -3,6 +3,7 @@ namespace AssistIQ.Application.Common;
 public static class ErrorCodes
 {
     public const string UnexpectedError = "unexpected_error";
+    public const string RateLimitExceeded = "rate_limit_exceeded";
     public const string ValidationFailed = "validation_failed";
     public const string NotFound = "not_found";
     public const string Conflict = "conflict";
