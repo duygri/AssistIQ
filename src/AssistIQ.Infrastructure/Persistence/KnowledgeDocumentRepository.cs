@@ -24,8 +24,24 @@ public sealed class KnowledgeDocumentRepository(AssistIQDbContext dbContext) : I
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<KnowledgeDocument> Items, int Total)> ListPagedAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.KnowledgeDocuments.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(d => d.UploadedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+        return (items, total);
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         return dbContext.SaveChangesAsync(cancellationToken);
     }
 }
+

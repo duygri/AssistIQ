@@ -78,6 +78,14 @@ public sealed class KnowledgeDocumentService(
         return documents.Select(ToDto).ToArray();
     }
 
+    public async Task<PagedResult<KnowledgeDocumentDto>> ListPagedAsync(
+        PaginationRequest pagination,
+        CancellationToken cancellationToken)
+    {
+        var (items, total) = await repository.ListPagedAsync(pagination.Skip, pagination.PageSize, cancellationToken);
+        return new PagedResult<KnowledgeDocumentDto>(items.Select(ToDto).ToArray(), total, pagination.Page, pagination.PageSize);
+    }
+
     public async Task<KnowledgeDocumentDto> DisableAsync(Guid id, CancellationToken cancellationToken)
     {
         var document = await repository.FindByIdAsync(id, cancellationToken)

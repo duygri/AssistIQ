@@ -8,12 +8,25 @@ public sealed class UsageLogRepository(AssistIQDbContext dbContext) : IUsageLogR
 {
     public async Task<IReadOnlyList<UsageLog>> ListAsync(CancellationToken cancellationToken)
     {
-        var logs = await dbContext.UsageLogs
+        return await dbContext.UsageLogs
             .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-        return logs
             .OrderByDescending(log => log.CreatedAt)
-            .ToArray();
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<UsageLog> Items, int Total)> ListPagedAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.UsageLogs.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(log => log.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+        return (items, total);
     }
 }
+

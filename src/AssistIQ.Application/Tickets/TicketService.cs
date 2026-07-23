@@ -52,6 +52,41 @@ public sealed class TicketService(
             .ToArray();
     }
 
+    public async Task<PagedResult<TicketSummaryDto>> ListPagedAsync(
+        PaginationRequest pagination,
+        CancellationToken cancellationToken)
+    {
+        // Admin: delegate filtering & counting to the DB.
+        // SupportAgent: must filter in-memory because the RBAC predicate uses UserId.
+        if (currentUser.Role == UserRole.Admin)
+        {
+            var (items, total) = await tickets.ListPagedAsync(pagination.Skip, pagination.PageSize, cancellationToken);
+            var dtos = items.Select(ticket => new TicketSummaryDto(
+                ticket.Id,
+                ticket.CustomerQuestion,
+                ticket.CustomerName,
+                ticket.CustomerEmail,
+                ticket.Status,
+                ticket.CreatedAt)).ToArray();
+            return new PagedResult<TicketSummaryDto>(dtos, total, pagination.Page, pagination.PageSize);
+        }
+        else
+        {
+            var all = await tickets.ListAsync(cancellationToken);
+            var filtered = all.Where(CanAccess).ToArray();
+            var total = filtered.Length;
+            var paged = filtered.Skip(pagination.Skip).Take(pagination.PageSize);
+            var dtos = paged.Select(ticket => new TicketSummaryDto(
+                ticket.Id,
+                ticket.CustomerQuestion,
+                ticket.CustomerName,
+                ticket.CustomerEmail,
+                ticket.Status,
+                ticket.CreatedAt)).ToArray();
+            return new PagedResult<TicketSummaryDto>(dtos, total, pagination.Page, pagination.PageSize);
+        }
+    }
+
     public async Task<TicketDto> GetAsync(Guid id, CancellationToken cancellationToken)
     {
         var ticket = await GetAccessibleTicketAsync(id, cancellationToken);

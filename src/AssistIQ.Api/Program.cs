@@ -3,6 +3,7 @@ using AssistIQ.Api.Auth;
 using AssistIQ.Api.Errors;
 using AssistIQ.Api.Security;
 using AssistIQ.Application.Abstractions;
+using AssistIQ.Application.Analytics;
 using AssistIQ.Application.AuditLogs;
 using AssistIQ.Application.Auth;
 using AssistIQ.Application.Drafts;
@@ -59,6 +60,8 @@ builder.Services.AddScoped<TicketService>();
 builder.Services.AddScoped<DraftService>();
 builder.Services.AddScoped<AuditLogQueryService>();
 builder.Services.AddScoped<UsageLogQueryService>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<DemoDataSeeder>();
 builder.Services.AddHttpContextAccessor();
 

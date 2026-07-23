@@ -10,6 +10,7 @@ public static class AuthorizationPolicies
     public const string DraftsManage = nameof(DraftsManage);
     public const string AuditLogsView = nameof(AuditLogsView);
     public const string UsageLogsView = nameof(UsageLogsView);
+    public const string AdminStatsView = nameof(AdminStatsView);
 
     public static void AddAssistIQPolicies(this AuthorizationOptions options)
     {
@@ -18,5 +19,6 @@ public static class AuthorizationPolicies
         options.AddPolicy(DraftsManage, policy => policy.RequireRole(nameof(UserRole.Admin), nameof(UserRole.SupportAgent)));
         options.AddPolicy(AuditLogsView, policy => policy.RequireRole(nameof(UserRole.Admin)));
         options.AddPolicy(UsageLogsView, policy => policy.RequireRole(nameof(UserRole.Admin)));
+        options.AddPolicy(AdminStatsView, policy => policy.RequireRole(nameof(UserRole.Admin)));
     }
 }

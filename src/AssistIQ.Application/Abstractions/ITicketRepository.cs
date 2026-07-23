@@ -10,5 +10,7 @@ public interface ITicketRepository
 
     Task<IReadOnlyList<Ticket>> ListAsync(CancellationToken cancellationToken);
 
+    Task<(IReadOnlyList<Ticket> Items, int Total)> ListPagedAsync(int skip, int take, CancellationToken cancellationToken);
+
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -1,4 +1,5 @@
 using AssistIQ.Api.Auth;
+using AssistIQ.Application.Common;
 using AssistIQ.Application.UsageLogs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,8 +12,11 @@ namespace AssistIQ.Api.Controllers;
 public sealed class UsageLogsController(UsageLogQueryService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<UsageLogDto>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<UsageLogDto>>> List(
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken)
     {
-        return Ok(await service.ListAsync(cancellationToken));
+        return Ok(await service.ListPagedAsync(pagination, cancellationToken));
     }
 }
+

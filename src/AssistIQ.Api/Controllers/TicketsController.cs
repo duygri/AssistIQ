@@ -1,4 +1,5 @@
 using AssistIQ.Api.Auth;
+using AssistIQ.Application.Common;
 using AssistIQ.Application.Tickets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +19,11 @@ public sealed class TicketsController(TicketService service) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TicketSummaryDto>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<TicketSummaryDto>>> List(
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken)
     {
-        return Ok(await service.ListAsync(cancellationToken));
+        return Ok(await service.ListPagedAsync(pagination, cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -29,3 +32,4 @@ public sealed class TicketsController(TicketService service) : ControllerBase
         return Ok(await service.GetAsync(id, cancellationToken));
     }
 }
+

@@ -10,5 +10,7 @@ public interface IKnowledgeDocumentRepository
 
     Task<IReadOnlyList<KnowledgeDocument>> ListAsync(CancellationToken cancellationToken);
 
+    Task<(IReadOnlyList<KnowledgeDocument> Items, int Total)> ListPagedAsync(int skip, int take, CancellationToken cancellationToken);
+
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

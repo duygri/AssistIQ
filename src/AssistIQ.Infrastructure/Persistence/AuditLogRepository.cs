@@ -8,12 +8,25 @@ public sealed class AuditLogRepository(AssistIQDbContext dbContext) : IAuditLogR
 {
     public async Task<IReadOnlyList<AuditLog>> ListAsync(CancellationToken cancellationToken)
     {
-        var logs = await dbContext.AuditLogs
+        return await dbContext.AuditLogs
             .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-        return logs
             .OrderByDescending(log => log.OccurredAt)
-            .ToArray();
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<AuditLog> Items, int Total)> ListPagedAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.AuditLogs.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(log => log.OccurredAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+        return (items, total);
     }
 }
+

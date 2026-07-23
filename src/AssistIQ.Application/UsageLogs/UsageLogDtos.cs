@@ -10,10 +10,11 @@ public sealed record UsageLogDto(
     string Provider,
     string Model,
     string? ResponseId,
-    int InputTokens,
-    int OutputTokens,
+    int PromptTokens,
+    int CompletionTokens,
     int TotalTokens,
     decimal EstimatedCost,
     UsageStatus Status,
     string? ErrorSummary,
     DateTimeOffset CreatedAt);
+

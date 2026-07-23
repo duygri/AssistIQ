@@ -24,8 +24,24 @@ public sealed class TicketRepository(AssistIQDbContext dbContext) : ITicketRepos
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<Ticket> Items, int Total)> ListPagedAsync(
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.Tickets.AsNoTracking();
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+        return (items, total);
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         return dbContext.SaveChangesAsync(cancellationToken);
     }
 }
+

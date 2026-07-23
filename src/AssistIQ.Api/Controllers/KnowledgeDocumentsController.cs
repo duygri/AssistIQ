@@ -1,4 +1,5 @@
 using AssistIQ.Api.Auth;
+using AssistIQ.Application.Common;
 using AssistIQ.Application.Knowledge;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,11 @@ namespace AssistIQ.Api.Controllers;
 public sealed class KnowledgeDocumentsController(KnowledgeDocumentService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<KnowledgeDocumentDto>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<KnowledgeDocumentDto>>> List(
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken cancellationToken)
     {
-        return Ok(await service.ListAsync(cancellationToken));
+        return Ok(await service.ListPagedAsync(pagination, cancellationToken));
     }
 
     [HttpPost]
@@ -33,3 +36,4 @@ public sealed class KnowledgeDocumentsController(KnowledgeDocumentService servic
         return Ok(await service.DisableAsync(id, cancellationToken));
     }
 }
+
